@@ -1,167 +1,107 @@
 <p align="center">
-  <img src="public/bogent-banner.png" alt="BOGENT - Autonomous AI Payments on Mantle" width="100%">
+  <img src="public/bogent-banner.png" alt="BOGENT - Autonomous AI Payments on Solana" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://www.mantle.xyz/"><img src="https://img.shields.io/badge/Network-Mantle-green" alt="Mantle Network"></a>
+  <a href="https://solana.com/"><img src="https://img.shields.io/badge/Network-Solana-blueviolet" alt="Solana Network"></a>
+  <a href="https://platform.acedata.cloud"><img src="https://img.shields.io/badge/AI-Ace_Data_Cloud-blue" alt="Ace Data Cloud"></a>
+  <a href="https://explorer.oobeprotocol.ai/"><img src="https://img.shields.io/badge/Protocol-SAP_SDK-purple" alt="SAP Protocol"></a>
   <a href="#"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License"></a>
-  <a href="https://bogent.vercel.app"><img src="https://img.shields.io/badge/Status-Live-success" alt="Status"></a>
-  <a href="https://sepolia.mantlescan.xyz/address/0x250a83CC3Db28e0819b263c8E086F2d0d92a3E9f"><img src="https://img.shields.io/badge/Contract-Sepolia-orange" alt="Sepolia Contract"></a>
 </p>
 
-# 🤖 BOGENT - Autonomous Payments on Mantle
+# 🤖 BOGENT - Autonomous Payments on Solana & SAP
 
+**BOGENT** is a decentralized agentic payment platform built on the **Solana Network**, leveraging the **SAP Protocol** and **Ace Data Cloud**. It empowers users with AI-driven "agents" for autonomous payment handling, verification, and seamless execution using the x402 standard.
 
-**BOGENT** is a decentralized agentic payment platform built on the **Mantle Network**. It empowers users with AI-driven "agents" for autonomous payment handling, recurring scheduling, and seamless invoice management.
+This project was built for the **OOBE Protocol × Ace Data Cloud Bounty** (Category 2 — Ace Data Cloud Usage).
 
 ## 🚀 Key Features
 
-- **🧾 Decentralized Invoicing**: Create, track, and pay on-chain invoices with full transparency.
-- **🤖 Autonomous Agents**: Configure "agents" to handle recurring payments (payroll, subscriptions) automatically.
-- **💰 Funded Agents**: Agents hold funds directly (MNT or ERC20 tokens) for trustless execution.
-- **⚡ Multi-Token Support**: Native **$MNT**, **USDT**, **USDC**, **mETH**, **cmETH**, **WETH** - network-aware token selection.(coming on mainnet)
-- **📊 Interactive Dashboard**: Click stat cards to drill down into payments received, pending invoices, and wallet details.
-- **🔄 Pause/Resume**: Full control over your agents with one-click pause and resume.
-- **✏️ Edit Paused Agents**: Update or delete agents even when they are paused or terminated.
-- **⏱️ Scheduled Termination**: Set end dates for agents to auto-terminate at a specific time.
-- **🔮 Transaction Simulation**: Pre-flight transaction checks for better error handling and UX.
-- **🕸️ Testnet Ready**: Deployed on Mantle Sepolia testnet with full token support.
+- **🤖 Autonomous AI Agents**: Agents discover tools via the SAP registry and execute workflows without human intervention.
+- **🧠 Ace Data Cloud Integration**: Implements 3+ distinct AceDataCloud API services (Text Summarization, Document Extraction, Sentiment Analysis) to verify and process invoice data.
+- **🛡️ Synapse Sentinel Verification**: All autonomous executions are verified by the Synapse Sentinel Agent before payment routing.
+- **💸 x402 Settlement**: Payments are routed securely via AceDataCloud's facilitator using the `@acedatacloud/x402client`.
+- **📊 Interactive Dashboard**: Monitor your agents' activities, statuses, and payment histories.
+- **🔄 Full Control**: Pause, resume, edit, or terminate agents at any time on-chain.
 - **📱 Fully Responsive**: Mobile-first design that works beautifully on all screen sizes.
-- **🔔 Transaction Feedback**: Real-time toast notifications and transaction modals with Mantlescan links.
 
 ## 🛠️ Tech Stack
 
 | Category | Technology |
 |----------|------------|
-| Blockchain | [Mantle Network](https://www.mantle.xyz/) |
+| Blockchain | [Solana](https://solana.com/) |
 | Framework | [Next.js 16](https://nextjs.org/) (App Router + Turbopack) |
 | React | [React 19](https://react.dev/) |
-| Styling | [Tailwind CSS 4](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/) |
-| Web3 | [Wagmi 2](https://wagmi.sh/) + [RainbowKit 2](https://www.rainbowkit.com/) + [Viem 2](https://viem.sh/) |
-| Smart Contracts | Solidity 0.8.27 + Hardhat |
+| AI / APIs | [Ace Data Cloud](https://platform.acedata.cloud) |
+| Web3 & SDKs | `@solana/web3.js`, `@solana/wallet-adapter-react`, `@oobe/sap-sdk`, `@acedatacloud/x402client` |
 | State Management | [TanStack Query](https://tanstack.com/query) |
-| Animations | [Framer Motion](https://www.framer.com/motion/) + [Vanta.js](https://www.vantajs.com/) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/) |
 
-## 📜 Smart Contracts
-
-> **Note**: Currently deployed on **Mantle Sepolia Testnet**.
-
-| Network | Address | Explorer |
-|---------|---------|----------|
-| **Mantle Sepolia** | `0x250a83CC3Db28e0819b263c8E086F2d0d92a3E9f` | [View](https://sepolia.mantlescan.xyz/address/0x250a83CC3Db28e0819b263c8E086F2d0d92a3E9f) |
-
-### Contract Features
-
-The `AgentPay.sol` smart contract provides:
-
-| Function | Description |
-|----------|-------------|
-| `createInvoice()` | Create on-chain invoices with metadata, due dates, and token type |
-| `payInvoice()` | Pay invoices using native MNT or ERC20 tokens |
-| `cancelInvoice()` | Cancel unpaid invoices (creator only) |
-| `createScheduledPayment()` | Deploy autonomous payment agents with initial funding |
-| `updateScheduledPayment()` | Update agent end dates (works on paused agents) |
-| `executeScheduledPayment()` | Execute due payments (called by worker/keeper) |
-| `cancelScheduledPayment()` | Terminate agent and refund remaining balance (works on paused agents) |
-| `toggleAgentStatus()` | Pause or resume an agent |
-| `topUpAgent()` | Add more funds to an active agent |
-
-## 📦 Installation
+## 📦 Installation & Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/barneybo18/MantleAgenticPayment.git
-   cd MantleAgenticPayment
+   git clone https://github.com/barneybo18/Bogentonace.git
+   cd Bogentonace
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
-3. **Set up Environment**
-   Create a `.env` file in the root directory:
-   ```env
-   PRIVATE_KEY=your_wallet_private_key
+3. **Set up Environment Variables**
+   Duplicate `.env.example` and rename it to `.env`:
+   ```bash
+   cp .env.example .env
    ```
+   Fill in your `SOLANA_PRIVATE_KEY`, `ACEDATA_API_KEY`, and `SYNAPSE_RPC_URL`.
 
-4. **Run the Development Server**
+4. **Register your Agent on SAP**
+   Run the following script to register BOGENT on the SAP mainnet:
+   ```bash
+   npx ts-node scripts/registerAgent.ts
+   ```
+   *Make sure to copy the returned Agent ID into your `.env` as `SAP_AGENT_ID`.*
+
+5. **Run the Development UI Server**
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-## 🤖 Running the Agent Worker
+## 🤖 Running the Autonomous Worker
 
-The worker script executes due payments automatically:
-
-```bash
-npx hardhat run scripts/worker.js --network mantleSepolia
-```
-
-## 🧪 Deployment
-
-To deploy the smart contracts to testnet:
+The background worker script is responsible for discovering tools, calling AceDataCloud APIs, running the Sentinel check, and settling payments autonomously:
 
 ```bash
-npx hardhat run scripts/deploy.js --network mantleSepolia
+npx ts-node scripts/worker.ts
 ```
-
-
-## 🔐 Security
-
-- **Ownable**: Contract ownership for administrative control.
-- **ReentrancyGuard**: Protected against reentrancy attacks.
-- **Non-Custodial**: Users verify all transactions via their wallet.
-- **Funded Agents**: Agents hold their own funds - no approvals needed at execution time.
-- **Transaction Simulation**: Pre-flight checks prevent failed transactions and provide clear error messages.
+*(In CI environments, you can pass `--once` to run a single execution cycle).*
 
 ## 📁 Project Structure
 
-```
+```text
 ├── app/                    # Next.js App Router pages
-│   ├── (app)/              # Main application routes
-│   │   ├── agents/         # Agent management (create, edit, view)
-│   │   ├── invoices/       # Invoice management (create, pay, track)
-│   │   └── dashboard/      # User dashboard with stats
-│   └── page.tsx            # Landing page
-├── components/             # React components (40+ components)
-│   ├── ui/                 # Shadcn UI primitives
-│   ├── AgentCard.tsx       # Agent display with actions
-│   ├── EditAgentModal.tsx  # Agent editing modal
-│   ├── InvoiceDetailModal.tsx # Invoice details and payment
-│   └── ...
-├── contracts/              # Solidity smart contracts
-│   └── AgentPay.sol        # Main contract (373 lines)
-├── hooks/                  # Custom React hooks (16 hooks)
-│   ├── useAgents.ts        # Fetch user agents
-│   ├── useCreateAgent.ts   # Create new agents
-│   ├── useUpdateAgent.ts   # Update agent with simulation
-│   ├── useDeleteAgent.ts   # Delete agent with simulation
-│   └── ...
-├── lib/                    # Utilities and contract config
-│   └── contracts.ts        # Contract addresses and ABIs
-└── scripts/                # Deployment and automation scripts
-    ├── deploy.js           # Contract deployment
-    └── worker.js           # Payment execution worker
+├── components/             # React UI Components
+├── hooks/                  # Custom React hooks (refactored for SAP/Solana)
+├── lib/                    
+│   ├── solana.ts           # Solana network connection setup
+│   ├── sap.ts              # Constants and configurations
+│   ├── sapClient.ts        # Integration with @oobe/sap-sdk
+│   ├── acedataClient.ts    # Integration with AceDataCloud APIs
+│   └── x402Client.ts       # x402 payment facilitator setup
+└── scripts/                
+    ├── registerAgent.ts    # SAP agent registration script
+    └── worker.ts           # Autonomous payment execution daemon
 ```
 
-## 🎯 Use Cases
+## 🎯 Hackathon Compliance (Category 2)
 
-- **💼 Payroll Automation**: Pay contractors/employees on a weekly or monthly basis
-- **📺 Subscriptions**: Decentralized subscription billing for Web3 services
-- **🏠 Rent Payments**: Automated monthly rent in crypto
-- **💸 DCA (Dollar-Cost Averaging)**: Automated recurring investments
-- **🤝 Revenue Sharing**: Auto-distribute earnings to stakeholders
-
-## 🚧 Recent Updates
-
-- ✅ **Paused Agent Operations**: Edit and delete agents even when paused or terminated
-- ✅ **Transaction Simulation**: Pre-flight checks for all agent operations
-- ✅ **End Date Validation**: Smart minimum end dates based on payment interval
-- ✅ **Improved Error Handling**: Detailed error messages with simulation feedback
-- ✅ **UI Enhancements**: Better loading states and transaction feedback
+- ✅ **Agent Registration**: Agent successfully registered on SAP mainnet.
+- ✅ **Ace Data Cloud Usage**: Implements `text/summary`, `document/extract`, and `text/sentiment` pipelines.
+- ✅ **Autonomous Workflow**: End-to-end execution (trigger → execution → payment) without manual input.
+- ✅ **Payment Settlement**: Settles via x402 standard using the AceDataCloud facilitator.
 
 ---
 
-Built with ❤️ for the **Mantle Hackathon**.
+Built with ❤️ for the **OOBE Protocol × Ace Data Cloud Hackathon**.
