@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bogent.vercel.app/sitemap.xml
+
+# Disallow API routes and internal pages
+Disallow: /api/
+Disallow: /_next/
+
+# Allow crawlers to index important pages
+Allow: /
+Allow: /dashboard
+Allow: /agents
+Allow: /invoices

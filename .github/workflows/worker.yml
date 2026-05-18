@@ -1,0 +1,24 @@
+name: BOGENT Solana Worker
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  run-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --legacy-peer-deps
+      - name: Run agent worker (single cycle)
+        env:
+          SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+          SYNAPSE_RPC_URL: ${{ secrets.SYNAPSE_RPC_URL }}
+          SAP_AGENT_ID: ${{ secrets.SAP_AGENT_ID }}
+          ACEDATA_API_KEY: ${{ secrets.ACEDATA_API_KEY }}
+          ACEDATA_BASE_URL: https://api.acedata.cloud
+          SYNAPSE_SENTINEL_AGENT: Ccr2yK3hLALU4p8oNRqrh4dGuvPJTth5KCLMio8cE1ph
+        run: npx ts-node scripts/worker.ts --once
