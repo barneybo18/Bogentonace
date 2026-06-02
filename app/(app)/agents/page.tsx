@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Bot, History } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "@/hooks/useAccount";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,7 +30,7 @@ export default function AgentsPage() {
                         Connect your wallet to manage your automated payment agents.
                     </p>
                 </div>
-                <ConnectButton />
+                <WalletMultiButton />
             </div>
         );
     }
@@ -51,7 +51,7 @@ export default function AgentsPage() {
     // Note: Once truly deleted via UI, they have isActive=false so won't show here
     const isCompleted = (a: typeof agents[0]) => {
         const hasNoBalance = a.balance === 0n && a.tokenBalance === 0n;
-        const hasPaid = (stats[a.id.toString()] || 0n) > 0n;
+        const hasPaid = (stats?.[a.id.toString()] || 0n) > 0n;
         // Only show as "completed" if still somehow active with 0 balance
         return a.isActive && hasNoBalance && hasPaid;
     };
@@ -136,7 +136,7 @@ export default function AgentsPage() {
                                                 <AgentCard
                                                     agent={agent}
                                                     onUpdate={refetch}
-                                                    totalSent={stats[agent.id.toString()] || 0n}
+                                                    totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
                                         ))}
@@ -177,7 +177,7 @@ export default function AgentsPage() {
                                                 <AgentCard
                                                     agent={agent}
                                                     onUpdate={refetch}
-                                                    totalSent={stats[agent.id.toString()] || 0n}
+                                                    totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
                                         ))}
@@ -210,7 +210,7 @@ export default function AgentsPage() {
                                                 <AgentCard
                                                     agent={agent}
                                                     onUpdate={refetch}
-                                                    totalSent={stats[agent.id.toString()] || 0n}
+                                                    totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
                                         ))}
@@ -243,7 +243,7 @@ export default function AgentsPage() {
                                                 <AgentCard
                                                     agent={agent}
                                                     onUpdate={refetch}
-                                                    totalSent={stats[agent.id.toString()] || 0n}
+                                                    totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
                                         ))}

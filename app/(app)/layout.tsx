@@ -1,7 +1,7 @@
 "use client";
 
 import { AppSidebar, MobileMenuTrigger } from "@/components/AppSidebar";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { NetworkBadge } from "@/components/NetworkBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Toaster } from "sonner";
@@ -26,17 +26,7 @@ export default function DashboardLayout({
                     <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
                         <ThemeToggle />
                         <NetworkBadge />
-                        <ConnectButton
-                            showBalance={false}
-                            accountStatus={{
-                                smallScreen: 'avatar',
-                                largeScreen: 'full',
-                            }}
-                            chainStatus={{
-                                smallScreen: 'icon',
-                                largeScreen: 'full',
-                            }}
-                        />
+                        <WalletMultiButton />
                     </div>
                 </header>
                 <div className="flex-1 overflow-auto p-4 md:p-6">

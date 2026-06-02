@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { payWithX402 } from "@/lib/x402Client";
+import { toast } from "sonner";
 
 export function usePayInvoice() {
     const [isPending, setIsPending] = useState(false);
@@ -9,11 +9,9 @@ export function usePayInvoice() {
     const payInvoice = useCallback(async (invoiceId: bigint, amount: bigint): Promise<boolean> => {
         setIsPending(true);
         try {
-            await payWithX402({
-                serviceUrl: "https://api.acedata.cloud/v1/text/summary",
-                amount: Number(amount),
-                walletSecret: new Uint8Array() // stub
-            });
+            // Payment is handled by the autonomous worker (scripts/worker.ts) server-side.
+            // SOLANA_PRIVATE_KEY must never be decoded in the browser.
+            toast.info("Payment queued — the autonomous worker will settle this on the next cycle.");
             return true;
         } catch (e) {
             console.error("Pay invoice error:", e);
@@ -23,16 +21,12 @@ export function usePayInvoice() {
         }
     }, []);
 
-    const resetState = useCallback(() => {
-        setIsPending(false);
-    }, []);
-
     return {
         payInvoice,
-        hash: "dummy-hash",
+        hash: null as string | null,
         isPending,
         isSuccess: false,
         error: null,
-        resetState
+        resetState: () => setIsPending(false),
     };
 }

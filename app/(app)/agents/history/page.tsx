@@ -8,14 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, History, RefreshCw, Bot, CheckCircle2, Trash2, Clock, Eye, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "@/hooks/useAccount";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, Suspense } from "react";
 import { formatId } from "@/lib/utils";
-import { NATIVE_TOKEN, SUPPORTED_TOKENS } from "@/lib/contracts";
-import { formatUnits } from "viem";
+import { NATIVE_TOKEN, SUPPORTED_TOKENS, formatTokenAmount, getTokenDecimals } from "@/lib/types";
 import { ClientDate } from "@/components/ClientDate";
 import {
     DropdownMenu,
@@ -47,7 +46,7 @@ function AgentHistoryContent() {
                         Connect your wallet to view the history of all your AI agents.
                     </p>
                 </div>
-                <ConnectButton />
+                <WalletMultiButton />
             </div>
         );
     }
@@ -86,8 +85,8 @@ function AgentHistoryContent() {
     const getTokenInfo = (token: string) => {
         const tokenInfo = SUPPORTED_TOKENS.find(t => t.address === token);
         return {
-            symbol: tokenInfo?.symbol || (token === NATIVE_TOKEN ? "MNT" : "Tokens"),
-            decimals: tokenInfo?.decimals || 18
+            symbol: tokenInfo?.symbol || (token === NATIVE_TOKEN ? "SOL" : "Tokens"),
+            decimals: tokenInfo?.decimals || 9
         };
     };
 
@@ -273,7 +272,7 @@ function AgentHistoryContent() {
                                                 </TableCell>
                                                 <TableCell>{getStatusBadge(agent.terminationReason)}</TableCell>
                                                 <TableCell className="font-medium text-green-500">
-                                                    {formatUnits(agent.totalPaid, decimals)} {symbol}
+                                                    {formatTokenAmount(agent.totalPaid, decimals)} {symbol}
                                                 </TableCell>
                                                 <TableCell>{agent.totalExecutions}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">

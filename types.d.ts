@@ -1,4 +1,4 @@
-declare module "@oobe/sap-sdk" {
+declare module "@oobe-protocol-labs/synapse-sap-sdk" {
   export class SAPClient {
     constructor(config: { rpcUrl: string; agentId: string });
     registerAgent(args: { name: string; description: string; network: string }): Promise<any>;
@@ -17,9 +17,4 @@ declare module "@oobe/synapse-client-sdk" {
   }
 }
 
-declare module "@acedatacloud/x402client" {
-  export class X402Client {
-    constructor(config: { rpcUrl: string; facilitator: string });
-    pay(args: { url: string; amount: number; signerSecret: Uint8Array }): Promise<{ txSignature: string }>;
-  }
-}
+

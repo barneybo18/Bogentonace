@@ -16,17 +16,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { RefreshCw } from "lucide-react";
-import { formatEther, formatUnits, parseUnits } from "viem";
+import { formatLamports, formatTokenAmount, getTokenDecimals, parseSol, parseUsdc, parseTokenAmount, SUPPORTED_TOKENS, NATIVE_TOKEN } from "@/lib/types";
 import { useState, use, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { SUPPORTED_TOKENS, NATIVE_TOKEN, CONTRACT_CONFIG } from "@/lib/contracts"; // Added imports
-import { useWallet } from "@solana/wallet-adapter-react";
-const useAccount = () => { const { publicKey, connected } = useWallet(); return { address: publicKey?.toString(), isConnected: connected }; };
-const useChainId = () => 1; // Added useChainId
-const useTokenApproval = () => ({ allowance: 1000000n, approveToken: async () => {}, isPending: false }); // Added useTokenApproval
+const useTokenApproval = (...args: any[]) => ({ allowance: 1000000n, approveToken: async (...args: any[]) => {}, isPending: false });
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getExplorerUrl } from "@/lib/mantle";
+import { getExplorerUrl } from "@/lib/solana";
 import { toast } from "sonner";
 
 // Helper to format duration
@@ -50,7 +46,6 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
     const [topUpAmount, setTopUpAmount] = useState("");
     const [topUpOpen, setTopUpOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const chainId = useChainId();
 
     // Handle successful deletion
     useEffect(() => {
@@ -72,21 +67,16 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
 
     // Token & Chain Info
     const tokenInfo = agent ? SUPPORTED_TOKENS.find(t => t.address === agent.token) : undefined;
-    const symbol = tokenInfo?.symbol || (agent?.token === NATIVE_TOKEN ? "MNT" : "Tokens");
-    const decimals = tokenInfo?.decimals || 18;
+    const symbol = tokenInfo?.symbol || (agent?.token === NATIVE_TOKEN ? "SOL" : "Tokens");
+    const decimals = tokenInfo?.decimals || 9;
     const isNative = agent?.token === NATIVE_TOKEN;
     const displayBalance = agent ? (isNative ? agent.balance : agent.tokenBalance) : 0n;
 
-    // Token Approval for Top Up
-    const config = CONTRACT_CONFIG[chainId];
-    const contractAddress = config?.address;
-
     const { allowance, approveToken, isPending: isApprovePending } = useTokenApproval(
-        agent?.token as `0x${string}`,
-        contractAddress
+        agent?.token ?? "",
     );
 
-    const topUpAmountBigInt = topUpAmount ? parseUnits(topUpAmount, decimals) : 0n;
+    const topUpAmountBigInt = topUpAmount ? parseTokenAmount(topUpAmount, decimals) : 0n;
     const needsApproval = !isNative && topUpAmountBigInt > 0n && allowance < topUpAmountBigInt;
 
 
@@ -98,9 +88,9 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
     const handleTopUp = async () => {
         try {
             if (isNative) {
-                await topUpAgent(id, parseUnits(topUpAmount, 18), 0n);
+                await topUpAgent(id, parseSol(topUpAmount), 0n);
             } else {
-                await topUpAgent(id, 0n, parseUnits(topUpAmount, decimals));
+                await topUpAgent(id, 0n, parseTokenAmount(topUpAmount, decimals));
             }
             setTopUpOpen(false);
             setTopUpAmount("");
@@ -207,7 +197,7 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                         <Wallet className="size-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatUnits(displayBalance, decimals)} {symbol}</div>
+                        <div className="text-2xl font-bold">{formatTokenAmount(displayBalance, decimals)} {symbol}</div>
                         <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
                             <DialogTrigger asChild>
                                 <Button size="sm" variant="outline" className="w-full mt-4">
@@ -251,7 +241,7 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                         <Activity className="size-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatUnits(agent.amount, decimals)} {symbol}</div>
+                        <div className="text-2xl font-bold">{formatTokenAmount(agent.amount, decimals)} {symbol}</div>
                         <p className="text-xs text-muted-foreground mt-1">
                             Every {formatDuration(Number(agent.interval))}
                         </p>
@@ -266,7 +256,7 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                         {historyLoading ? (
                             <div className="h-8 w-24 bg-muted animate-pulse rounded" />
                         ) : (
-                            <div className="text-2xl font-bold">{formatUnits(totalSpent, decimals)} {symbol}</div>
+                            <div className="text-2xl font-bold">{formatTokenAmount(totalSpent, decimals)} {symbol}</div>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
                             Across {history.length} executions
@@ -329,9 +319,9 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-bold">-{formatUnits(item.amount, decimals)} {symbol}</p>
+                                                    <p className="font-bold">-{formatTokenAmount(item.amount, decimals)} {symbol}</p>
                                                     <a
-                                                        href={getExplorerUrl(chainId, item.transactionHash)}
+                                                        href={getExplorerUrl(item.transactionHash)}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="text-xs text-primary hover:underline font-mono"
@@ -397,9 +387,9 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold">-{formatUnits(item.amount, decimals)} {symbol}</p>
+                                        <p className="font-bold">-{formatTokenAmount(item.amount, decimals)} {symbol}</p>
                                         <a
-                                            href={getExplorerUrl(chainId, item.transactionHash)}
+                                            href={getExplorerUrl(item.transactionHash)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="text-xs text-primary hover:underline font-mono"

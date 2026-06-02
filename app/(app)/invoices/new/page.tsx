@@ -13,15 +13,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useCreateInvoice } from "@/hooks/useCreateInvoice";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { SUPPORTED_TOKENS, NATIVE_TOKEN } from "@/lib/contracts";
-import { parseUnits } from "viem";
+import { WalletMultiButton as ConnectButton } from "@solana/wallet-adapter-react-ui";
+import { SUPPORTED_TOKENS, NATIVE_TOKEN, parseSol, parseTokenAmount } from "@/lib/types";
 import { TransactionModal, TransactionState } from "@/components/TransactionModal";
 
 export default function NewInvoicePage() {
     const router = useRouter();
-    const { isConnected } = useAccount();
-    const chainId = useChainId();
+    const { connected: isConnected } = useWallet();
     const { createInvoice, isPending, isSuccess, hash, error } = useCreateInvoice();
 
     const [payeeName, setPayeeName] = useState("");
@@ -37,10 +35,8 @@ export default function NewInvoicePage() {
 
     // Filter tokens based on current chain
     const availableTokens = useMemo(() => {
-        return SUPPORTED_TOKENS.filter(t =>
-            t.chainId === 0 || t.chainId === chainId
-        );
-    }, [chainId]);
+        return SUPPORTED_TOKENS;
+    }, []);
 
     // Get selected token details
     const selectedToken = useMemo(() => {
@@ -80,9 +76,10 @@ export default function NewInvoicePage() {
     const handleSubmit = async () => {
         if (!recipient || !amount || !date) return;
 
-        // Validate address
-        if (!recipient.startsWith('0x') || recipient.length !== 42) {
-            alert('Please enter a valid Ethereum address');
+        // Basic Solana address validation
+        const isBase58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient);
+        if (!isBase58) {
+            alert('Please enter a valid Solana address');
             return;
         }
 
@@ -96,7 +93,9 @@ export default function NewInvoicePage() {
         });
 
         const timestamp = Math.floor(new Date(date).getTime() / 1000);
-        const amountInUnits = parseUnits(amount, selectedToken.decimals).toString();
+        const amountInUnits = selectedToken.address === NATIVE_TOKEN
+            ? parseSol(amount).toString()
+            : parseTokenAmount(amount, selectedToken.decimals).toString();
 
         try {
             await createInvoice(recipient, amountInUnits, token, metadata, timestamp);
@@ -178,7 +177,7 @@ export default function NewInvoicePage() {
                             <Input
                                 id="amount"
                                 type="number"
-                                step={selectedToken.decimals === 6 ? "0.000001" : "0.001"}
+                                step={(selectedToken.decimals as number) === 6 ? "0.000001" : "0.001"}
                                 placeholder="0.00"
                                 value={amount}
                                 onChange={e => setAmount(e.target.value)}

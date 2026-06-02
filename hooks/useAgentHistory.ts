@@ -2,6 +2,6 @@
 
 import { useState } from "react";
 
-export function useAgentHistory() {
-    return { history: [], isLoading: false, refetch: () => {} };
+export function useAgentHistory(id?: bigint) {
+    return { history: [] as any[], isLoading: false, refetch: () => {} };
 }

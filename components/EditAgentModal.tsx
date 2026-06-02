@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ScheduledPayment } from "@/lib/contracts";
+import { ScheduledPayment } from "@/lib/types";
 import { useUpdateAgent } from "@/hooks/useUpdateAgent";
 import {
     Dialog,
@@ -187,7 +187,7 @@ export function EditAgentModal({ agent, isOpen, onClose, onUpdate }: EditAgentMo
 
                         <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">Recipient</Label>
-                            <Input value={agent.to} disabled readOnly className="bg-muted/50 font-mono text-xs" />
+                            <Input value={agent.to || ""} disabled readOnly className="bg-muted/50 font-mono text-xs" />
                         </div>
                     </div>
 

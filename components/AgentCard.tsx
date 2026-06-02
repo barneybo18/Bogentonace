@@ -1,7 +1,6 @@
 "use client";
 
-import { ScheduledPayment, NATIVE_TOKEN, SUPPORTED_TOKENS, CONTRACT_CONFIG } from "@/lib/contracts";
-import { formatEther, formatUnits, parseUnits } from "viem";
+import { ScheduledPayment, NATIVE_TOKEN, SUPPORTED_TOKENS, formatTokenAmount, parseSol, parseTokenAmount } from "@/lib/types";
 import { formatId } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import { useTopUpAgent } from "@/hooks/useTopUpAgent";
 import { useDeleteAgent } from "@/hooks/useDeleteAgent";
 import { useToggleAgentStatus } from "@/hooks/useToggleAgentStatus";
 
-const useTokenApproval = () => ({ allowance: 1000000n, approveToken: async () => {}, isPending: false });
+const useTokenApproval = (...args: any[]) => ({ allowance: 1000000n, approveToken: async (...args: any[]) => {}, isPending: false });
 import {
     Dialog,
     DialogContent,
@@ -56,7 +55,7 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
     const { topUpAgent, isPending: isTopUpPending } = useTopUpAgent();
     const { deleteAgent, isPending: isDeletePending, isSuccess: isDeleteSuccess, error: deleteError, resetState: resetDeleteState } = useDeleteAgent();
     const { toggleAgentStatus, isPending: isTogglePending } = useToggleAgentStatus();
-    const chainId = useChainId();
+    const chainId = 1;
 
     const [topUpAmount, setTopUpAmount] = useState("");
     const [isTopUpOpen, setIsTopUpOpen] = useState(false);
@@ -65,8 +64,8 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
     const [showRestartGuide, setShowRestartGuide] = useState(false);
 
     const tokenInfo = SUPPORTED_TOKENS.find(t => t.address === agent.token);
-    const symbol = tokenInfo?.symbol || (agent.token === NATIVE_TOKEN ? "MNT" : "Tokens");
-    const decimals = tokenInfo?.decimals || 18;
+    const symbol = tokenInfo?.symbol || (agent.token === NATIVE_TOKEN ? "SOL" : "Tokens");
+    const decimals = tokenInfo?.decimals || 9;
     const isNative = agent.token === NATIVE_TOKEN;
 
     // Check if agent is terminated (Inactive + Past End Date)
@@ -78,15 +77,11 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
     const isCompleted = displayBalance === 0n && !agent.isActive && totalSent > 0n;
 
     // Token Approval for Top Up
-    const config = CONTRACT_CONFIG[chainId];
-    const contractAddress = config?.address;
-
     const { allowance, approveToken, isPending: isApprovePending } = useTokenApproval(
-        agent.token as `0x${string}`,
-        contractAddress
+        agent.token,
     );
 
-    const topUpAmountBigInt = topUpAmount ? parseUnits(topUpAmount, decimals) : 0n;
+    const topUpAmountBigInt = topUpAmount ? parseTokenAmount(topUpAmount, decimals) : 0n;
     const needsApproval = !isNative && topUpAmountBigInt > 0n && allowance < topUpAmountBigInt;
 
     // Track delete success to show toast and refetch
@@ -120,9 +115,9 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
         if (!topUpAmount) return;
         try {
             if (isNative) {
-                await topUpAgent(agent.id, parseUnits(topUpAmount, 18), 0n);
+                await topUpAgent(agent.id, parseSol(topUpAmount), 0n);
             } else {
-                await topUpAgent(agent.id, 0n, parseUnits(topUpAmount, decimals));
+                await topUpAgent(agent.id, 0n, parseTokenAmount(topUpAmount, decimals));
             }
 
             setIsTopUpOpen(false);
@@ -242,7 +237,7 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
                             Balance
                         </span>
                         <span className="text-lg font-bold">
-                            {formatUnits(displayBalance || 0n, decimals)} {symbol}
+                            {formatTokenAmount(displayBalance || 0n, decimals)} {symbol}
                         </span>
                     </div>
 
@@ -257,12 +252,12 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
 
                     <div className="flex justify-between items-center">
                         <span className="text-sm text-neutral-500">Total Paid</span>
-                        <span className="font-bold text-green-600">{formatUnits(totalSent, decimals)} {symbol}</span>
+                        <span className="font-bold text-green-600">{formatTokenAmount(totalSent, decimals)} {symbol}</span>
                     </div>
 
                     <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Payment Amount</span>
-                        <span className="font-medium">{formatUnits(agent.amount, decimals)} {symbol}</span>
+                        <span className="font-medium">{formatTokenAmount(agent.amount, decimals)} {symbol}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Frequency</span>
@@ -421,7 +416,7 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
                             <AlertDialogDescription>
                                 {isCompleted
                                     ? "This agent has finished all its payments. Deleting it will remove it permanently from your dashboard."
-                                    : `This will permanently delete the agent and refund all remaining funds (${formatUnits(displayBalance, decimals)} ${symbol}) to your wallet.`
+                                    : `This will permanently delete the agent and refund all remaining funds (${formatTokenAmount(displayBalance, decimals)} ${symbol}) to your wallet.`
                                 }
                             </AlertDialogDescription>
                         </AlertDialogHeader>

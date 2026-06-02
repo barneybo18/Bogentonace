@@ -11,39 +11,19 @@ export function useInvalidateQueries() {
     const queryClient = useQueryClient();
 
     const invalidateAll = useCallback(() => {
-        
-        queryClient.invalidateQueries({ queryKey: ["readContract"] });
-        queryClient.invalidateQueries({ queryKey: ["readContracts"] });
-
-        queryClient.refetchQueries({
-            queryKey: ["readContract"],
-            type: "active"
-        });
-        queryClient.refetchQueries({
-            queryKey: ["readContracts"],
-            type: "active"
-        });
+        queryClient.invalidateQueries({ queryKey: ["agents"] });
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
+        queryClient.invalidateQueries({ queryKey: ["scheduledPayments"] });
+        queryClient.invalidateQueries({ queryKey: ["userStats"] });
+        queryClient.invalidateQueries({ queryKey: ["agentHistory"] });
     }, [queryClient]);
 
     const invalidateAgents = useCallback(() => {
-        queryClient.invalidateQueries({
-            predicate: (query) => {
-                const key = query.queryKey;
-                return JSON.stringify(key).includes("getUserScheduledPayments") ||
-                    JSON.stringify(key).includes("getScheduledPayment");
-            }
-        });
+        queryClient.invalidateQueries({ queryKey: ["agents"] });
     }, [queryClient]);
 
     const invalidateInvoices = useCallback(() => {
-        queryClient.invalidateQueries({
-            predicate: (query) => {
-                const key = query.queryKey;
-                return JSON.stringify(key).includes("getUserCreatedInvoices") ||
-                    JSON.stringify(key).includes("getUserReceivedInvoices") ||
-                    JSON.stringify(key).includes("getInvoice");
-            }
-        });
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
     }, [queryClient]);
 
     return {

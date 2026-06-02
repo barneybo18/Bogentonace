@@ -5,12 +5,7 @@ import { useState, useCallback } from "react";
 export function useCreateInvoice() {
     const [isPending, setIsPending] = useState(false);
 
-    const createInvoice = useCallback(async (
-        agentId: bigint,
-        description: string,
-        amount: bigint,
-        dueDate: bigint
-    ) => {
+    const createInvoice = useCallback(async (...args: any[]) => {
         setIsPending(true);
         try {
             // Stubbed for AceDataCloud/SAP
@@ -23,5 +18,5 @@ export function useCreateInvoice() {
         }
     }, []);
 
-    return { createInvoice, isPending, hash: "dummy", isSuccess: false, error: null, resetState: () => {} };
+    return { createInvoice, isPending, hash: "dummy", isSuccess: false, error: null as any, resetState: () => {} };
 }

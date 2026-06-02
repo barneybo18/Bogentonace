@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { getExplorerUrl } from "@/lib/mantle";
+import { getExplorerUrl } from "@/lib/solana";
 
 import Image from "next/image";
 
@@ -36,8 +36,6 @@ export function TransactionModal({
     onSuccessAction,
     successActionLabel = "Continue"
 }: TransactionModalProps) {
-    const chainId = useChainId();
-
     // Parse error message to be user-friendly
     const getFriendlyError = (errorMsg?: string) => {
         if (!errorMsg) return "Something went wrong. Please try again.";
@@ -133,7 +131,7 @@ export function TransactionModal({
                 {txHash && (state === 'pending' || state === 'success') && (
                     <div className="flex justify-center">
                         <a
-                            href={getExplorerUrl(chainId, txHash)}
+                            href={getExplorerUrl(txHash)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-primary hover:underline"

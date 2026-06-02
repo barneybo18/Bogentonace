@@ -9,9 +9,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { NATIVE_TOKEN, SUPPORTED_TOKENS } from "@/lib/contracts";
-import { formatUnits } from "viem";
+import { NATIVE_TOKEN, SUPPORTED_TOKENS, formatTokenAmount } from "@/lib/types";
 import { formatId } from "@/lib/utils";
+import { getExplorerUrl } from "@/lib/solana";
 import { useAgentHistory } from "@/hooks/useAgentHistory";
 import { ArchivedAgent, AgentEventType } from "@/hooks/useAgentHistoryLog";
 
@@ -52,8 +52,6 @@ const eventTypeConfig: Record<AgentEventType, { icon: typeof Bot; label: string;
 };
 
 export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistoryDetailModalProps) {
-    const chainId = useChainId();
-
     const { history: detailedEvents, isLoading: eventsLoading } = useAgentHistory(
         isOpen && agent ? agent.id : undefined
     );
@@ -64,13 +62,6 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
     const symbol = tokenInfo?.symbol || (agent.token === NATIVE_TOKEN ? "MNT" : "Tokens");
     const decimals = tokenInfo?.decimals || 18;
     const isNative = agent.token === NATIVE_TOKEN;
-
-    const getExplorerUrl = (txHash: string) => {
-        if (chainId === 5000) {
-            return `https://mantlescan.xyz/tx/${txHash}`;
-        }
-        return `https://sepolia.mantlescan.xyz/tx/${txHash}`;
-    };
 
     const getStatusBadge = () => {
         switch (agent.terminationReason) {
@@ -154,7 +145,7 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
                                     Total Paid
                                 </div>
                                 <p className="text-2xl font-bold text-green-500">
-                                    {formatUnits(agent.totalPaid, decimals)} {symbol}
+                                    {formatTokenAmount(agent.totalPaid, decimals)} {symbol}
                                 </p>
                             </div>
                             <div className="p-4 rounded-lg bg-muted/50 space-y-1">
@@ -175,7 +166,7 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
                                         <Coins className="size-4" />
                                         Payment Amount
                                     </span>
-                                    <span className="font-medium">{formatUnits(agent.amount, decimals)} {symbol}</span>
+                                    <span className="font-medium">{formatTokenAmount(agent.amount, decimals)} {symbol}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-muted-foreground flex items-center gap-2">
@@ -231,7 +222,7 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
                             ) : (
                                 <div className="relative pl-4 space-y-3">
                                     <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
-                                    {events.map((event, idx) => {
+                                    {events.map((event: any, idx: number) => {
                                         const config = eventTypeConfig[event.type] || eventTypeConfig.executed;
                                         const Icon = config.icon;
                                         return (
@@ -245,7 +236,7 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
                                                         <span className="text-sm font-medium">{config.label}</span>
                                                         {event.amount && (
                                                             <Badge variant="outline" className="text-xs">
-                                                                {formatUnits(event.amount, decimals)} {symbol}
+                                                                {formatTokenAmount(event.amount, decimals)} {symbol}
                                                             </Badge>
                                                         )}
                                                     </div>

@@ -1,0 +1,32 @@
+{
+  "name": "BOGENT",
+  "description": "Autonomous payment agent: discovers tools via SAP, executes AI tasks via AceDataCloud, settles micropayments via x402",
+  "capabilities": [
+    {
+      "id": "acedata:task-execution",
+      "protocolId": "acedata",
+      "version": "1.0",
+      "description": "Execute AI tasks via AceDataCloud"
+    },
+    {
+      "id": "x402:payments",
+      "protocolId": "x402",
+      "version": "1.0",
+      "description": "Settle micropayments using x402 protocol"
+    },
+    {
+      "id": "sap:tool-discovery",
+      "protocolId": "sap",
+      "version": "1.0",
+      "description": "Discover and integrate tools from SAP registry"
+    }
+  ],
+  "protocols": [
+    "acedata",
+    "x402",
+    "sap",
+    "A2A"
+  ],
+  "pricing": [],
+  "x402Endpoint": "https://api.example.com/x402"
+}

@@ -10,21 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ArrowLeft, Bot, Info } from "lucide-react";
 import Link from "next/link";
-import { parseEther, parseUnits } from "viem";
+import { parseSol, parseUsdc, parseTokenAmount, SUPPORTED_TOKENS, NATIVE_TOKEN } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { SUPPORTED_TOKENS, NATIVE_TOKEN, CONTRACT_CONFIG } from "@/lib/contracts";
+import { useAccount } from "@/hooks/useAccount";
 
-const useTokenApproval = () => ({ allowance: 1000000n, approveToken: async () => {}, isPending: false });
+const useTokenApproval = (...args: any[]) => ({ allowance: 1000000n, approveToken: async (...args: any[]) => {}, isPending: false, isLoadingAllowance: false });
 import { TransactionModal, TransactionState } from "@/components/TransactionModal";
 import { toast } from "sonner";
 
 export default function NewAgentPage() {
     const router = useRouter();
-    const chainId = useChainId();
+    const chainId = 5003;
     const { createAgent, isPending, isSuccess, hash, error } = useCreateAgent();
 
-    const availableTokens = SUPPORTED_TOKENS.filter(t => t.chainId === 0 || t.chainId === chainId);
+    const availableTokens = SUPPORTED_TOKENS;
 
     const [recipient, setRecipient] = useState("");
     const [amount, setAmount] = useState("");
@@ -44,17 +44,12 @@ export default function NewAgentPage() {
     const isNative = token === NATIVE_TOKEN;
     const finalTokenAddress = token === "custom" ? customToken : token;
 
-    // Get contract address for approval
-    const config = CONTRACT_CONFIG[chainId];
-    const contractAddress = config?.address;
-
     // Token Approval Hook
     const { allowance, approveToken, isPending: isApprovePending, isLoadingAllowance } = useTokenApproval(
-        finalTokenAddress as `0x${string}`,
-        contractAddress
+        finalTokenAddress,
     );
 
-    const depositAmountBigInt = initialDeposit ? parseUnits(initialDeposit, selectedToken.decimals) : 0n;
+    const depositAmountBigInt = initialDeposit ? parseTokenAmount(initialDeposit, selectedToken.decimals) : 0n;
     const needsApproval = !isNative && depositAmountBigInt > 0n && allowance < depositAmountBigInt;
 
     // Track if modal was manually dismissed
@@ -79,9 +74,9 @@ export default function NewAgentPage() {
         if (dismissed) return;
         if (error) {
             setTxState('error');
-            setTxError(error.message || "Transaction failed");
+            setTxError(error || "Transaction failed");
             toast.error("Failed to create agent", {
-                description: error.message?.slice(0, 100)
+                description: error?.slice(0, 100)
             });
         }
     }, [error, dismissed]);
@@ -93,12 +88,12 @@ export default function NewAgentPage() {
 
         const result = await createAgent(
             recipient,
-            parseUnits(amount, selectedToken.decimals),
+            parseTokenAmount(amount, selectedToken.decimals),
             finalTokenAddress,
             BigInt(interval),
             description,
-            isNative ? parseUnits(initialDeposit, 18) : 0n, // MNT Deposit (value)
-            isNative ? 0n : depositAmountBigInt, // Token Deposit
+            isNative ? parseSol(initialDeposit) : 0n,
+            isNative ? 0n : depositAmountBigInt,
             (endDate && endTime) ? BigInt(Math.floor(new Date(`${endDate}T${endTime}`).getTime() / 1000)) : 0n
         );
 

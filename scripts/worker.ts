@@ -1,4 +1,4 @@
-import { discoverTools, callSentinel, getSAPClient } from "../lib/sapClient";
+import { discoverTools, callSentinel } from "./sapClient";
 import { summarizeText, extractDocumentData, analyzeSentiment } from "../lib/acedataClient";
 import { payWithX402 } from "../lib/x402Client";
 import bs58 from "bs58";

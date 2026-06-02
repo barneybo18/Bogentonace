@@ -1,4 +1,7 @@
-import { registerAgent } from "../lib/sapClient";
+import dotenv from "dotenv";
+import { registerAgent } from "./sapClient";
+
+dotenv.config();
 
 async function main() {
   console.log("Registering BOGENT on SAP mainnet...");
@@ -11,4 +14,7 @@ async function main() {
   console.log("Save this to .env as SAP_AGENT_ID=", result.agentId);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

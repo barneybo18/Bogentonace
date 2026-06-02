@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Invoice } from "@/lib/contracts";
-import { formatEther } from "viem";
+import { Invoice, formatTokenAmount, getTokenSymbol, getTokenDecimals } from "@/lib/types";
 import { formatId } from "@/lib/utils";
 import {
     Copy,
@@ -68,7 +67,10 @@ export function InvoiceDetailModal({
 
     if (!invoice) return null;
 
-    const isCreator = invoice.creator.toLowerCase() === userAddress?.toLowerCase();
+    const creator = invoice.creator || "";
+    const recipient = invoice.recipient || "";
+
+    const isCreator = creator.toLowerCase() === userAddress?.toLowerCase();
     const canPay = !invoice.paid && !isCreator;
     const canCancel = !invoice.paid && isCreator;
 
@@ -115,6 +117,8 @@ export function InvoiceDetailModal({
     };
 
     const metadata = parseMetadata();
+    const tokenSymbol = getTokenSymbol(invoice.token);
+    const tokenDecimals = getTokenDecimals(invoice.token);
 
     const copyToClipboard = (text: string, type: string) => {
         navigator.clipboard.writeText(text);
@@ -125,12 +129,12 @@ export function InvoiceDetailModal({
     const getShareUrl = () => `${window.location.origin}/invoices/${invoice.id.toString()}`;
 
     const getShareMessage = () => {
-        const amount = formatEther(invoice.amount);
+        const amount = formatTokenAmount(invoice.amount, tokenDecimals);
         const lines = [
             `💰 Invoice Request on Bogent`,
             ``,
             `📋 Invoice ID: ${formatId(invoice.id)}`,
-            `💵 Amount: ${amount} MNT`,
+            `💵 Amount: ${amount} ${tokenSymbol}`,
         ];
         if (metadata.name) lines.push(`👤 From: ${metadata.name}`);
         if (metadata.description) lines.push(`📝 Memo: ${metadata.description}`);
@@ -141,19 +145,19 @@ export function InvoiceDetailModal({
     };
 
     const getFullInvoiceDetails = () => {
-        const amount = formatEther(invoice.amount);
+        const amount = formatTokenAmount(invoice.amount, tokenDecimals);
         const lines = [
             `═══════════════════════════════`,
             `        BOGENT INVOICE         `,
             `═══════════════════════════════`,
             ``,
             `Invoice ID: ${formatId(invoice.id)}`,
-            `Amount: ${amount} MNT`,
+            `Amount: ${amount} ${tokenSymbol}`,
             ``,
             `From: ${metadata.name || 'Unknown'}`,
-            `Creator Address: ${invoice.creator}`,
+            `Creator Address: ${creator}`,
             ``,
-            `To: ${invoice.recipient}`,
+            `To: ${recipient}`,
             ``,
         ];
         if (metadata.description) {
@@ -245,8 +249,8 @@ export function InvoiceDetailModal({
     };
 
     const shareToTwitter = () => {
-        const amount = formatEther(invoice.amount);
-        const text = `💰 Invoice for ${amount} MNT | ID: ${formatId(invoice.id)}${metadata.description ? ` | ${metadata.description}` : ''} | Pay via @BogentHQ`;
+        const amount = formatTokenAmount(invoice.amount, tokenDecimals);
+        const text = `💰 Invoice for ${amount} ${tokenSymbol} | ID: ${formatId(invoice.id)}${metadata.description ? ` | ${metadata.description}` : ''} | Pay via @BogentHQ`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(getShareUrl())}`;
         window.open(url, '_blank');
     };
@@ -300,7 +304,7 @@ export function InvoiceDetailModal({
                         <Coins className="size-8 mx-auto mb-2 text-primary" />
                         <p className="text-sm text-muted-foreground mb-1">Amount</p>
                         <p className="text-4xl font-bold tracking-tight">
-                            {formatEther(invoice.amount)} <span className="text-xl text-muted-foreground">MNT</span>
+                            {formatTokenAmount(invoice.amount, tokenDecimals)} <span className="text-xl text-muted-foreground">{tokenSymbol}</span>
                         </p>
                     </div>
 
@@ -321,15 +325,15 @@ export function InvoiceDetailModal({
                                 <div className="flex items-center gap-2 mt-1">
                                     <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
                                         {isCreator
-                                            ? `${invoice.recipient.slice(0, 10)}...${invoice.recipient.slice(-8)}`
-                                            : `${invoice.creator.slice(0, 10)}...${invoice.creator.slice(-8)}`
+                                            ? `${recipient.slice(0, 10)}...${recipient.slice(-8)}`
+                                            : `${creator.slice(0, 10)}...${creator.slice(-8)}`
                                         }
                                     </code>
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         className="size-6"
-                                        onClick={() => copyToClipboard(isCreator ? invoice.recipient : invoice.creator, 'address')}
+                                        onClick={() => copyToClipboard(isCreator ? recipient : creator, 'address')}
                                     >
                                         {copied === 'address' ? (
                                             <Check className="size-3 text-green-500" />
@@ -353,15 +357,15 @@ export function InvoiceDetailModal({
                                 <div className="flex items-center gap-2 mt-1">
                                     <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
                                         {isCreator
-                                            ? `${invoice.creator.slice(0, 10)}...${invoice.creator.slice(-8)}`
-                                            : `${invoice.creator.slice(0, 10)}...${invoice.creator.slice(-8)}`
+                                            ? `${creator.slice(0, 10)}...${creator.slice(-8)}`
+                                            : `${creator.slice(0, 10)}...${creator.slice(-8)}`
                                         }
                                     </code>
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         className="size-6"
-                                        onClick={() => copyToClipboard(invoice.creator, 'creator')}
+                                        onClick={() => copyToClipboard(creator, 'creator')}
                                     >
                                         {copied === 'creator' ? (
                                             <Check className="size-3 text-green-500" />
@@ -511,7 +515,7 @@ export function InvoiceDetailModal({
                                 ) : (
                                     <>
                                         <Wallet className="size-4 mr-2" />
-                                        Pay {formatEther(invoice.amount)} MNT
+                                        Pay {formatTokenAmount(invoice.amount, tokenDecimals)} {tokenSymbol}
                                     </>
                                 )}
                             </Button>
@@ -544,14 +548,14 @@ export function InvoiceDetailModal({
                         <Button
                             variant="link"
                             className="text-xs text-muted-foreground"
-                            onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${invoice.creator}`, '_blank')}
+                            onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${creator}`, '_blank')}
                         >
                             <ExternalLink className="size-3 mr-1" />
                             View on Mantle Explorer
                         </Button>
                     </div>
 
-=                    <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+                    <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
                         <div
                             ref={posterRef}
                             data-poster-root
@@ -616,7 +620,7 @@ export function InvoiceDetailModal({
                                         display: 'inline-block'
                                     }}>
                                         <p style={{ fontSize: '72px', fontWeight: 'bold', letterSpacing: '-1px', color: '#ffffff', margin: 0, lineHeight: 1 }}>
-                                            {formatEther(invoice.amount)} <span style={{ color: '#22d3ee', fontSize: '30px' }}>MNT</span>
+                                            {formatTokenAmount(invoice.amount, tokenDecimals)} <span style={{ color: '#22d3ee', fontSize: '30px' }}>{tokenSymbol}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -625,7 +629,7 @@ export function InvoiceDetailModal({
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         <p style={{ color: '#94a3b8', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>From</p>
                                         <p style={{ fontSize: '20px', fontWeight: '500', color: '#ffffff', margin: 0 }}>{metadata.name || 'Unknown'}</p>
-                                        <p style={{ color: '#64748b', fontSize: '14px', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{invoice.creator}</p>
+                                        <p style={{ color: '#64748b', fontSize: '14px', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{creator}</p>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'right' }}>
                                         <p style={{ color: '#94a3b8', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>Due Date</p>

@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 export function useTopUpAgent() {
     const [isPending, setIsPending] = useState(false);
 
-    const topUpAgent = useCallback(async (id: bigint, amount: bigint) => {
+    const topUpAgent = useCallback(async (...args: any[]) => {
         setIsPending(true);
         try {
             // Stubbed for Solana SPL transfer

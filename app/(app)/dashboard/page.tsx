@@ -8,23 +8,22 @@ import Image from "next/image";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useAgents } from "@/hooks/useAgents";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { formatEther } from "viem";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useState } from "react";
+import { formatLamports } from "@/lib/types";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { StatCardsGridSkeleton } from "@/components/StatCardSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
 import { StatDetailSheet } from "@/components/StatDetailSheet";
 import { InvoiceDetailModal } from "@/components/InvoiceDetailModal";
-import { Invoice } from "@/lib/contracts";
-import { getExplorerUrl, getExplorerAddressUrl } from "@/lib/mantle";
+import { Invoice } from "@/lib/types";
 import { usePayInvoice } from "@/hooks/usePayInvoice";
 import { useCancelInvoice } from "@/hooks/useCancelInvoice";
+import { useAccount } from "@/hooks/useAccount";
 
 export default function DashboardPage() {
     const { isConnected, address } = useAccount();
-    const chainId = useChainId();
+    const chainId = 1;
     const { balanceFormatted, totalReceivedFormatted, invoiceCount, isLoading: statsLoading } = useUserStats();
     const { invoices, isLoading: invoicesLoading, refetch } = useInvoices();
     const { agents, isLoading: agentsLoading } = useAgents();
@@ -103,7 +102,7 @@ export default function DashboardPage() {
                     <h2 className="text-3xl font-bold tracking-tight">Welcome to Bogent</h2>
                     <p className="text-muted-foreground">Connect your wallet to get started</p>
                 </div>
-                <ConnectButton />
+                <WalletMultiButton />
             </div>
         );
     }
@@ -169,7 +168,7 @@ export default function DashboardPage() {
                             <CardContent>
                                 <div className="text-2xl font-bold">{pendingInvoices.length}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    Worth ~{formatEther(pendingTotal)} MNT
+                                    Worth ~{formatLamports(pendingTotal)} SOL
                                 </p>
                             </CardContent>
                         </Card>
@@ -301,7 +300,7 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-medium">{formatEther(invoice.amount)} MNT</div>
+                                                <div className="font-medium">{formatLamports(invoice.amount)} SOL</div>
                                                 <div className={`text-xs ${invoice.paid ? 'text-green-500' : 'text-yellow-500'}`}>
                                                     {invoice.paid ? 'Paid' : 'Pending'}
                                                 </div>
@@ -379,7 +378,7 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-green-500">+{formatEther(invoice.amount)} MNT</p>
+                                    <p className="font-bold text-green-500">+{formatLamports(invoice.amount)} SOL</p>
                                 </div>
                             </div>
                         ))}
@@ -392,7 +391,7 @@ export default function DashboardPage() {
                 isOpen={pendingSheetOpen}
                 onClose={() => setPendingSheetOpen(false)}
                 title="Pending Invoices"
-                description={`${pendingInvoices.length} awaiting payment • ~${formatEther(pendingTotal)} MNT`}
+                description={`${pendingInvoices.length} awaiting payment • ~${formatLamports(pendingTotal)} SOL`}
             >
                 {pendingInvoices.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
@@ -430,7 +429,7 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold">{formatEther(invoice.amount)} MNT</p>
+                                        <p className="font-bold">{formatLamports(invoice.amount)} SOL</p>
                                         <p className="text-xs text-yellow-500">Pending</p>
                                     </div>
                                 </div>
@@ -469,12 +468,12 @@ export default function DashboardPage() {
 
                     <Button asChild className="w-full" variant="outline">
                         <a
-                            href={getExplorerAddressUrl(chainId, address || '')}
+                            href={address ? `https://explorer.solana.com/address/${address}` : '#'}
                             target="_blank"
                             rel="noreferrer"
                         >
                             <ExternalLink className="mr-2 h-4 w-4" />
-                            View on Mantlescan
+                            View on Solana Explorer
                         </a>
                     </Button>
                 </div>
@@ -485,7 +484,7 @@ export default function DashboardPage() {
                 invoice={selectedInvoice}
                 isOpen={!!selectedInvoice}
                 onClose={() => setSelectedInvoice(null)}
-                userAddress={address}
+                userAddress={address || undefined}
                 onPay={handlePay}
                 onCancel={handleCancel}
                 isPaying={paying && payingId === selectedInvoice?.id}

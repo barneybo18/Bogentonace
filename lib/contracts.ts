@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address } from "@/lib/viem-mock";
 
 // Deployed on Mantle Sepolia testnet
 // v2: Allows deletion of completed agents (0 balance)

@@ -10,14 +10,13 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { usePayInvoice } from "@/hooks/usePayInvoice";
 import { useCancelInvoice } from "@/hooks/useCancelInvoice";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { formatEther } from "viem";
 import { formatId } from "@/lib/utils";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletMultiButton as ConnectButton } from "@solana/wallet-adapter-react-ui";
 import { useState, useEffect, Suspense } from "react";
 import { InvoiceTableSkeleton } from "@/components/InvoiceTableSkeleton";
 import { InvoiceDetailModal } from "@/components/InvoiceDetailModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Invoice } from "@/lib/contracts";
+import { Invoice, formatTokenAmount, getTokenSymbol, getTokenDecimals } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
 import {
     DropdownMenu,
@@ -26,6 +25,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const useAccount = () => { const { publicKey, connected } = useWallet(); return { address: publicKey?.toString(), isConnected: connected }; };
 
 function InvoicesContent() {
     const { isConnected, address } = useAccount();
@@ -106,7 +107,9 @@ function InvoicesContent() {
 
     const copyInvoiceDetails = (invoice: Invoice) => {
         const metadata = parseMetadata(invoice.metadataHash);
-        const amount = formatEther(invoice.amount);
+        const tokenSymbol = getTokenSymbol(invoice.token);
+        const tokenDecimals = getTokenDecimals(invoice.token);
+        const amount = formatTokenAmount(invoice.amount, tokenDecimals);
         const shareUrl = `${window.location.origin}/invoices/${invoice.id.toString()}`;
 
         const details = [
@@ -115,7 +118,7 @@ function InvoicesContent() {
             `═══════════════════════════════`,
             ``,
             `Invoice ID: #${invoice.id.toString().padStart(4, '0')}`,
-            `Amount: ${amount} MNT`,
+            `Amount: ${amount} ${tokenSymbol}`,
             ``,
             `From: ${metadata.name || 'Unknown'}`,
             `Address: ${invoice.creator}`,
@@ -275,7 +278,7 @@ function InvoicesContent() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-medium">
-                                                {formatEther(invoice.amount)} MNT
+                                                {formatTokenAmount(invoice.amount, getTokenDecimals(invoice.token))} {getTokenSymbol(invoice.token)}
                                             </TableCell>
                                             <TableCell>{formatDate(invoice.dueDate)}</TableCell>
                                             <TableCell className="text-right">

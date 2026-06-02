@@ -10,14 +10,14 @@ export function useDeleteAgent() {
         setIsPending(true);
         try {
             await getSAPClient().cancelAgent();
-            return { success: true };
+            return { success: true, error: null };
         } catch (e) {
             console.error(e);
-            return { success: false, error: e };
+            return { success: false, error: (e as Error).message };
         } finally {
             setIsPending(false);
         }
     }, []);
 
-    return { deleteAgent, isPending, hash: "dummy", isSuccess: false, error: null, resetState: () => {} };
+    return { deleteAgent, isPending, hash: "dummy", isSuccess: false, error: null as any, resetState: () => {} };
 }

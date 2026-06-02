@@ -51,12 +51,12 @@ export default function Home() {
             </h1>
 
             <p className="text-lg sm:text-xl lg:text-2xl font-light text-slate-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              <span className="text-primary font-medium">Autonomous finance</span> on Mantle.
+              <span className="text-primary font-medium">Autonomous finance</span> built for Solana-native automation.
               Secure, trustless agents designed for your automated future.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+          <div className="flex justify-center lg:justify-start">
             <Button
               size="lg"
               className="h-14 px-10 rounded-full text-lg font-bold bg-white text-black hover:bg-white/90 shadow-xl shadow-white/10 transition-all duration-300"
@@ -66,16 +66,6 @@ export default function Home() {
                 Launch App
                 <ArrowRight className="ml-2 size-5 transition-transform group-hover:translate-x-1" />
               </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-14 px-10 rounded-full text-lg font-medium border-white/10 text-white hover:bg-white/5 transition-all duration-300"
-              asChild
-            >
-              <a href="https://docs.mantle.xyz" target="_blank" rel="noopener noreferrer">
-                About Mantle
-              </a>
             </Button>
           </div>
         </motion.div>

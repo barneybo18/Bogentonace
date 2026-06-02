@@ -21,7 +21,7 @@ export function WelcomePopup() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const pathname = usePathname();
-    const { isConnected } = useAccount();
+    const { connected: isConnected } = useWallet();
 
     useEffect(() => {
         setIsMounted(true);

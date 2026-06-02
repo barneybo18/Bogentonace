@@ -4,14 +4,14 @@ import { useInvoice } from "@/hooks/useInvoices";
 import { usePayInvoice } from "@/hooks/usePayInvoice";
 import { useWallet } from "@solana/wallet-adapter-react";
 const useAccount = () => { const { publicKey, connected } = useWallet(); return { address: publicKey?.toString(), isConnected: connected }; };
-const useChainId = () => 1;
+const useChainId = () => 5003;
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { formatEther } from "viem";
+import { WalletMultiButton as ConnectButton } from "@solana/wallet-adapter-react-ui";
 import { formatId } from "@/lib/utils";
+import { formatTokenAmount, getTokenSymbol, getTokenDecimals } from "@/lib/types";
 import {
     ChevronLeft,
     Loader2,
@@ -167,7 +167,7 @@ export default function InvoiceDetailPage() {
                         {isCreator ? 'Invoice you sent' : 'Invoice for payment'}
                     </CardDescription>
                     <CardTitle className="text-4xl font-bold tracking-tight pt-4">
-                        {formatEther(invoice.amount)} <span className="text-2xl text-muted-foreground">MNT</span>
+                        {formatTokenAmount(invoice.amount, getTokenDecimals(invoice.token))} <span className="text-2xl text-muted-foreground">{getTokenSymbol(invoice.token)}</span>
                     </CardTitle>
                 </CardHeader>
 
@@ -293,7 +293,7 @@ export default function InvoiceDetailPage() {
                             ) : (
                                 <>
                                     <Wallet className="size-4 mr-2" />
-                                    Pay {formatEther(invoice.amount)} MNT
+                                    Pay {formatTokenAmount(invoice.amount, getTokenDecimals(invoice.token))} {getTokenSymbol(invoice.token)}
                                 </>
                             )}
                         </Button>
