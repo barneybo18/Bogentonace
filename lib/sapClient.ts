@@ -4,14 +4,13 @@
 // NOTE: This file uses a dynamic require() to load the CJS SDK at runtime.
 // It must only be called from server-side code (API routes / Server Components).
 
-function getRequireFunc() {
-  if (typeof window !== "undefined") {
-    return () => { throw new Error("Dynamic require not supported client-side"); };
-  }
-  const req = eval("require");
-  const createRequire = req("module").createRequire;
-  return createRequire(__filename);
-}
+import { createRequire } from "module";
+import path from "path";
+
+// Anchor require to the real project root on disk.
+// process.cwd() is the actual filesystem path even in Next.js dev/prod,
+// unlike __filename which can be a virtual "/ROOT/..." path at runtime.
+const _require = createRequire(path.join(process.cwd(), "package.json"));
 
 let _client: any | null = null;
 
@@ -25,14 +24,13 @@ export function getSAPClient(): any {
   }
 
   if (!_client) {
-    const requireFunc = getRequireFunc();
-    const { SapClient } = requireFunc(
-      "../node_modules/@oobe-protocol-labs/synapse-sap-sdk/dist/cjs/index.js"
+    const { SapClient } = _require(
+      "@oobe-protocol-labs/synapse-sap-sdk"
     );
-    const bs58Pkg = requireFunc("bs58");
+    const bs58Pkg = _require("bs58");
     const bs58 = (bs58Pkg as any).default || bs58Pkg;
-    const { Keypair } = requireFunc("@solana/web3.js");
-    const anchor = requireFunc("@coral-xyz/anchor");
+    const { Keypair } = _require("@solana/web3.js");
+    const anchor = _require("@coral-xyz/anchor");
 
     const privateKey = process.env.SOLANA_PRIVATE_KEY;
     if (!privateKey) throw new Error("SOLANA_PRIVATE_KEY not set");
@@ -52,9 +50,8 @@ export function getSAPClient(): any {
 export async function registerAgent(name: string, description: string) {
   if (typeof window !== "undefined") return { txSignature: "", agentId: "" };
   const client = getSAPClient();
-  const requireFunc = getRequireFunc();
-  const { deriveAgent, deriveAgentStats, deriveGlobalRegistry } = requireFunc(
-    "../node_modules/@oobe-protocol-labs/synapse-sap-sdk/dist/cjs/pda/index.js"
+  const { deriveAgent, deriveAgentStats, deriveGlobalRegistry } = _require(
+    "@oobe-protocol-labs/synapse-sap-sdk/dist/cjs/pda/index.js"
   );
   const [agentPda] = deriveAgent(client.provider.wallet.publicKey, client.programId);
   const [statsPda] = deriveAgentStats(agentPda, client.programId);
@@ -66,7 +63,7 @@ export async function registerAgent(name: string, description: string) {
     { id: "sap:tool-discovery",     description: "Discover tools from SAP registry", protocolId: "sap", version: "1.0.0" },
   ];
 
-  const { SystemProgram } = requireFunc("@solana/web3.js");
+  const { SystemProgram } = _require("@solana/web3.js");
 
   const txSignature = await client.program.methods.registerAgent(
     name,
@@ -96,9 +93,8 @@ export async function discoverTools(query: string) {
     const category = query.toLowerCase().includes("payment") ? "payment"
       : query.toLowerCase().includes("data") || query.toLowerCase().includes("ai") ? "data"
       : "custom";
-    const requireFunc = getRequireFunc();
-    const { DiscoveryRegistry } = requireFunc(
-      "../node_modules/@oobe-protocol-labs/synapse-sap-sdk/dist/cjs/registries/index.js"
+    const { DiscoveryRegistry } = _require(
+      "@oobe-protocol-labs/synapse-sap-sdk/dist/cjs/registries/index.js"
     );
     const discovery = new DiscoveryRegistry(client.program);
     return await discovery.findToolsByCategory(category).catch(() => []);
@@ -121,8 +117,7 @@ export async function callSentinel(taskDescription: string): Promise<{
   }
 
   const client = getSAPClient();
-  const requireFunc = getRequireFunc();
-  const { PublicKey } = requireFunc("@solana/web3.js");
+  const { PublicKey } = _require("@solana/web3.js");
 
   try {
     const sentinelPubkey = new PublicKey(sentinelId);

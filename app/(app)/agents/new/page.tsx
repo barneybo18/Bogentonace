@@ -183,15 +183,18 @@ export default function NewAgentPage() {
 
                         {token === "custom" && (
                             <div className="space-y-2">
-                                <Label htmlFor="customToken">Token Address</Label>
+                                <Label htmlFor="customToken">SPL Token Mint Address</Label>
                                 <Input
                                     id="customToken"
-                                    placeholder="0x..."
+                                    placeholder="Solana token mint (e.g. EPjFW...)"
                                     value={customToken}
-                                    onChange={(e) => setCustomToken(e.target.value)}
+                                    onChange={(e) => setCustomToken(e.target.value.trim())}
                                     required
-                                    pattern="^0x[a-fA-F0-9]{40}$"
+                                    className={customToken && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(customToken) ? 'border-red-500' : customToken && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(customToken) ? 'border-green-500' : ''}
                                 />
+                                {customToken && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(customToken) && (
+                                    <p className="text-xs text-red-500">Please enter a valid Solana token mint address</p>
+                                )}
                             </div>
                         )}
 
@@ -200,12 +203,19 @@ export default function NewAgentPage() {
                             <Label htmlFor="recipient">Recipient Address</Label>
                             <Input
                                 id="recipient"
-                                placeholder="0x..."
+                                placeholder="Solana address (e.g. 7xKXt...)"
                                 value={recipient}
-                                onChange={(e) => setRecipient(e.target.value)}
+                                onChange={(e) => setRecipient(e.target.value.trim())}
                                 required
-                                pattern="^0x[a-fA-F0-9]{40}$"
+                                className={recipient && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? 'border-red-500 focus-visible:ring-red-500' : recipient && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? 'border-green-500 focus-visible:ring-green-500' : ''}
                             />
+                            {recipient && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? (
+                                <p className="text-xs text-red-500">Please enter a valid Solana address (base58, 32–44 characters)</p>
+                            ) : recipient && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? (
+                                <p className="text-xs text-green-500">✓ Valid Solana address</p>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">Enter the Solana wallet address to pay</p>
+                            )}
                         </div>
 
                         {/* Amount & Frequency */}
@@ -342,7 +352,7 @@ export default function NewAgentPage() {
                                 )}
                             </Button>
                         ) : (
-                            <Button type="submit" disabled={isPending || !initialDeposit || !amount || !recipient}>
+                            <Button type="submit" disabled={isPending || !initialDeposit || !amount || !recipient || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient)}>
                                 {isPending ? (
                                     <>
                                         <Loader2 className="size-4 mr-2 animate-spin" />
@@ -364,8 +374,8 @@ export default function NewAgentPage() {
                 onCancel={handleCancel}
                 state={txState}
                 title="Creating Agent"
-                description={`Deploying your ${description || 'payment agent'} on Mantle...`}
-                txHash={hash}
+                description={`Deploying your ${description || 'payment agent'} on Solana...`}
+                txHash={hash ?? undefined}
                 error={txError}
                 successMessage="Your agent has been deployed and is ready to execute payments!"
                 onSuccessAction={() => router.push("/agents")}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { getSAPClient } from "@/lib/sapClient";
 
 export function useScheduledPayments() {
     const [payments, setPayments] = useState<any[]>([]);
@@ -10,8 +9,19 @@ export function useScheduledPayments() {
     const refetch = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSAPClient().getScheduledPayments();
-            setPayments(data || []);
+            const res = await fetch("/api/scheduled-payments");
+            const data = await res.json();
+            const parsed = (data.payments ?? []).map((p: any) => ({
+                ...p,
+                id: BigInt(p.id),
+                amount: BigInt(p.amount),
+                balance: BigInt(p.balance),
+                tokenBalance: BigInt(p.tokenBalance),
+                interval: BigInt(p.interval),
+                nextExecution: BigInt(p.nextExecution),
+                endDate: BigInt(p.endDate),
+            }));
+            setPayments(parsed);
         } catch (e) {
             console.error(e);
         } finally {
@@ -34,19 +44,27 @@ export function useScheduledPayments() {
 export function useCreateScheduledPayment() {
     const [isPending, setIsPending] = useState(false);
     const createScheduledPayment = async () => {};
-    return { createScheduledPayment, hash: "dummy", isPending, isSuccess: false, error: null };
+    return { createScheduledPayment, hash: null, isPending, isSuccess: false, error: null };
 }
 
 export function useCancelScheduledPayment() {
     const [isPending, setIsPending] = useState(false);
-    const cancelPayment = async (id: bigint) => {
+
+    const cancelPayment = async (id: bigint | string) => {
         setIsPending(true);
         try {
-            await getSAPClient().cancelAgent();
+            const res = await fetch("/api/scheduled-payments", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: String(id) }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error ?? "Cancel failed");
         } finally {
             setIsPending(false);
         }
     };
+
     return { cancelPayment, isPending, isSuccess: false, error: null };
 }
 

@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NATIVE_TOKEN, SUPPORTED_TOKENS, formatTokenAmount } from "@/lib/types";
 import { formatId } from "@/lib/utils";
-import { getExplorerUrl } from "@/lib/solana";
+import { getExplorerUrl } from "@/lib/network";
+import { useNetwork } from "@/components/NetworkProvider";
 import { useAgentHistory } from "@/hooks/useAgentHistory";
 import { ArchivedAgent, AgentEventType } from "@/hooks/useAgentHistoryLog";
 
@@ -52,6 +53,7 @@ const eventTypeConfig: Record<AgentEventType, { icon: typeof Bot; label: string;
 };
 
 export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistoryDetailModalProps) {
+    const { network } = useNetwork();
     const { history: detailedEvents, isLoading: eventsLoading } = useAgentHistory(
         isOpen && agent ? agent.id : undefined
     );
@@ -245,7 +247,7 @@ export function AgentHistoryDetailModal({ agent, isOpen, onClose }: AgentHistory
                                                             <ClientDate timestamp={Number(event.timestamp)} />
                                                         </span>
                                                         <a
-                                                            href={getExplorerUrl(event.transactionHash)}
+                                                            href={getExplorerUrl("tx/" + event.transactionHash, network)}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="text-xs text-primary hover:underline flex items-center gap-1"

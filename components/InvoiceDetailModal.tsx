@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Invoice, formatTokenAmount, getTokenSymbol, getTokenDecimals } from "@/lib/types";
+import { Invoice, formatTokenAmount, getTokenSymbol, getTokenDecimals, NATIVE_TOKEN } from "@/lib/types";
 import { formatId } from "@/lib/utils";
+import { useNetwork } from "@/components/NetworkProvider";
+import { getExplorerUrl } from "@/lib/network";
 import {
     Copy,
     Check,
@@ -64,6 +66,7 @@ export function InvoiceDetailModal({
 }: InvoiceDetailModalProps) {
     const [copied, setCopied] = useState<string | null>(null);
     const posterRef = useRef<HTMLDivElement>(null);
+    const { network } = useNetwork();
 
     if (!invoice) return null;
 
@@ -410,12 +413,12 @@ export function InvoiceDetailModal({
                     <div className="p-3 rounded-lg bg-muted/30 border">
                         <p className="text-xs font-medium text-muted-foreground mb-1">Token</p>
                         <div className="flex items-center gap-2">
-                            {invoice.token === "0x0000000000000000000000000000000000000000" ? (
+                            {invoice.token === NATIVE_TOKEN ? (
                                 <>
-                                    <div className="size-6 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                        <span className="text-white text-xs font-bold">M</span>
+                                    <div className="size-6 rounded-full bg-black flex items-center justify-center">
+                                        <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="SOL" className="size-4 rounded-full" />
                                     </div>
-                                    <span className="font-medium">MNT (Native Token)</span>
+                                    <span className="font-medium">SOL (Native Token)</span>
                                 </>
                             ) : (
                                 <>
@@ -548,10 +551,10 @@ export function InvoiceDetailModal({
                         <Button
                             variant="link"
                             className="text-xs text-muted-foreground"
-                            onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${creator}`, '_blank')}
+                            onClick={() => window.open(getExplorerUrl(`address/${creator}`, network), '_blank')}
                         >
                             <ExternalLink className="size-3 mr-1" />
-                            View on Mantle Explorer
+                            View on Solana Explorer
                         </Button>
                     </div>
 
@@ -593,7 +596,7 @@ export function InvoiceDetailModal({
                                         </div>
                                         <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>Bogent</h1>
                                     </div>
-                                    <p style={{ color: '#94a3b8', margin: 0 }}>Autonomous Payments on Mantle</p>
+                                    <p style={{ color: '#94a3b8', margin: 0 }}>Autonomous Payments on Solana</p>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{
@@ -666,7 +669,7 @@ export function InvoiceDetailModal({
                                     <p style={{ color: '#22d3ee', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>bogent.app</p>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <p style={{ color: '#64748b', fontSize: '12px', margin: '0 0 4px 0' }}>Powered by Mantle Network</p>
+                                    <p style={{ color: '#64748b', fontSize: '12px', margin: '0 0 4px 0' }}>Powered by Solana</p>
                                 </div>
                             </div>
                         </div>

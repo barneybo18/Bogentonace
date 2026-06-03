@@ -3,7 +3,8 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { getExplorerUrl } from "@/lib/solana";
+import { getExplorerUrl } from "@/lib/network";
+import { useNetwork } from "@/components/NetworkProvider";
 
 import Image from "next/image";
 
@@ -36,6 +37,8 @@ export function TransactionModal({
     onSuccessAction,
     successActionLabel = "Continue"
 }: TransactionModalProps) {
+    const { network } = useNetwork();
+    
     // Parse error message to be user-friendly
     const getFriendlyError = (errorMsg?: string) => {
         if (!errorMsg) return "Something went wrong. Please try again.";
@@ -131,12 +134,12 @@ export function TransactionModal({
                 {txHash && (state === 'pending' || state === 'success') && (
                     <div className="flex justify-center">
                         <a
-                            href={getExplorerUrl(txHash)}
+                            href={getExplorerUrl("tx/" + txHash, network)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
                         >
-                            View on Mantlescan
+                            View on Solana Explorer
                             <ExternalLink className="size-3" />
                         </a>
                     </div>

@@ -35,6 +35,105 @@ function acedataChat(prompt) {
   });
 }
 
+async function processScheduledPayments(connection, payerKeypair) {
+  console.log("\n[Scheduled Payments] Checking for due payments...");
+  const fs = require("fs");
+  const path = require("path");
+  
+  const DB_PATH = path.join(__dirname, "..", "cache", "scheduled_payments.json");
+  const HISTORY_PATH = path.join(__dirname, "..", "cache", "agent_history.json");
+  
+  if (!fs.existsSync(DB_PATH)) {
+    console.log("[Scheduled Payments] No database found.");
+    return;
+  }
+  
+  let payments = [];
+  try {
+    payments = JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
+  } catch (e) {
+    console.error("[Scheduled Payments] Failed to parse database:", e.message);
+    return;
+  }
+  
+  const now = Math.floor(Date.now() / 1000);
+  let updated = false;
+  
+  for (let i = 0; i < payments.length; i++) {
+    const p = payments[i];
+    if (p.isActive && now >= Number(p.nextExecution)) {
+      console.log(`[Scheduled Payments] 🎯 Agent #${p.id} ("${p.description}") is due!`);
+      const amount = BigInt(p.amount);
+      const balance = BigInt(p.balance);
+      
+      if (balance < amount) {
+        console.warn(`[Scheduled Payments] ⚠️ Agent #${p.id} has insufficient balance (balance: ${balance}, required: ${amount}). Deactivating...`);
+        p.isActive = false;
+        updated = true;
+        continue;
+      }
+      
+      // Perform transfer
+      try {
+        console.log(`[Scheduled Payments] Sending ${Number(amount) / 1e9} SOL to ${p.to}...`);
+        const { Transaction, SystemProgram, sendAndConfirmTransaction, PublicKey } = require("@solana/web3.js");
+        
+        const toPubkey = new PublicKey(p.to);
+        const transferTx = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: payerKeypair.publicKey,
+            toPubkey: toPubkey,
+            lamports: Number(amount),
+          })
+        );
+        
+        const latestBlock = await connection.getLatestBlockhash("confirmed");
+        transferTx.recentBlockhash = latestBlock.blockhash;
+        transferTx.feePayer = payerKeypair.publicKey;
+        
+        const txSignature = await sendAndConfirmTransaction(
+          connection,
+          transferTx,
+          [payerKeypair],
+          { skipPreflight: true }
+        );
+        
+        console.log(`[Scheduled Payments] ✅ Payment successful! Signature: ${txSignature}`);
+        
+        // Update database record
+        p.balance = (balance - amount).toString();
+        p.nextExecution = (now + Number(p.interval)).toString();
+        updated = true;
+        
+        // Save history log
+        let history = [];
+        if (fs.existsSync(HISTORY_PATH)) {
+          try {
+            history = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf-8"));
+          } catch (err) {}
+        }
+        history.push({
+          agentId: p.id.toString(),
+          transactionHash: txSignature,
+          amount: amount.toString(),
+          timestamp: now.toString(),
+        });
+        fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2));
+        
+      } catch (err) {
+        console.error(`[Scheduled Payments] ❌ Failed to execute payment:`, err.message);
+      }
+    }
+  }
+  
+  if (updated) {
+    fs.writeFileSync(DB_PATH, JSON.stringify(payments, null, 2));
+    console.log("[Scheduled Payments] Saved updated agent balances and schedules.");
+  } else {
+    console.log("[Scheduled Payments] No payments were due or updated.");
+  }
+}
+
 // ── Main workflow ─────────────────────────────────────────────
 async function processWorkflow(client, wallet) {
   const ts = new Date().toISOString();
@@ -112,7 +211,9 @@ async function processWorkflow(client, wallet) {
     const { Keypair, Connection, sendAndConfirmTransaction } = require("@solana/web3.js");
     const payerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.SOLANA_PRIVATE_KEY));
     
-    const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+    const isDevnet = process.env.NEXT_PUBLIC_SOLANA_NETWORK === "devnet";
+    const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+    const connection = new Connection(rpcUrl, "confirmed");
     const customWallet = {
       publicKey: payerKeypair.publicKey,
       signAndSendTransaction: async (tx) => {
@@ -146,6 +247,18 @@ async function processWorkflow(client, wallet) {
   console.log("  → Sentinel: verified");
   console.log("  → x402 Payment:", signed ? "signed" : "failed");
   console.log("  → Timestamp:", ts);
+
+  // ── Step 6: Process scheduled payments from database ──────────────────
+  try {
+    const { Connection } = require("@solana/web3.js");
+    const isDevnet = process.env.NEXT_PUBLIC_SOLANA_NETWORK === "devnet";
+    const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+    const connection = new Connection(rpcUrl, "confirmed");
+    const payerKeypair = wallet.payer || wallet;
+    await processScheduledPayments(connection, payerKeypair);
+  } catch (e) {
+    console.log("[Scheduled Payments] ⚠️ Failed processing scheduled payments step:", e.message);
+  }
 }
 
 async function main() {
@@ -162,12 +275,13 @@ async function main() {
   const keypair = Keypair.fromSecretKey(bs58.decode(process.env.SOLANA_PRIVATE_KEY));
   const anchorPkg = require("@coral-xyz/anchor");
   const wallet = new anchorPkg.Wallet(keypair);
-  const mainnetRpcUrl = "https://api.mainnet-beta.solana.com";
-  const client = new SapClient({ rpcUrl: mainnetRpcUrl, wallet });
+  const isDevnet = process.env.NEXT_PUBLIC_SOLANA_NETWORK === "devnet";
+  const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+  const client = new SapClient({ rpcUrl, wallet });
 
   console.log("🤖 BOGENT Worker started");
   console.log("   Wallet:", wallet.publicKey.toBase58());
-  console.log("   Network: SAP Mainnet");
+  console.log("   Network: " + (isDevnet ? "Solana Devnet" : "Solana Mainnet"));
   console.log("   AceData: " + ACEDATA_BASE);
 
   const runOnce = process.argv.includes("--once");

@@ -1,7 +1,7 @@
 {
     "name": "BOGENT - Autonomous Payment Agents",
     "short_name": "BOGENT",
-    "description": "Deploy self-funded AI agents for recurring crypto payments on Mantle Network",
+    "description": "Deploy self-funded AI agents for recurring crypto payments on Solana",
     "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#0a0a0a",

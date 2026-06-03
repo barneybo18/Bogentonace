@@ -63,7 +63,7 @@ export function WelcomePopup() {
                         Welcome to Bogent! 🎉
                     </DialogTitle>
                     <DialogDescription className="text-base pt-2">
-                        Your gateway to autonomous, decentralized payments on Mantle Network.
+                        Your gateway to autonomous, decentralized payments on Solana.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -84,7 +84,7 @@ export function WelcomePopup() {
                         </div>
                         <div>
                             <p className="font-medium text-sm">Lightning Fast</p>
-                            <p className="text-xs text-muted-foreground">Powered by Mantle Network</p>
+                            <p className="text-xs text-muted-foreground">Powered by Solana</p>
                         </div>
                     </div>
 

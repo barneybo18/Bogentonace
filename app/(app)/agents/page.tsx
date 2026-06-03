@@ -15,8 +15,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AgentsPage() {
     const { isConnected } = useAccount();
-    const { agents, isLoading, refetch } = useAgents();
-    const { stats, isLoading: statsLoading } = useAgentStats();
+    const { agents, isLoading, refetch: refetchAgents } = useAgents();
+    const { stats, isLoading: statsLoading, refetch: refetchStats } = useAgentStats();
+
+    const handleUpdate = () => {
+        refetchAgents();
+        refetchStats();
+    };
 
     if (!isConnected) {
         return (
@@ -135,7 +140,7 @@ export default function AgentsPage() {
                                             >
                                                 <AgentCard
                                                     agent={agent}
-                                                    onUpdate={refetch}
+                                                    onUpdate={handleUpdate}
                                                     totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
@@ -176,7 +181,7 @@ export default function AgentsPage() {
                                             >
                                                 <AgentCard
                                                     agent={agent}
-                                                    onUpdate={refetch}
+                                                    onUpdate={handleUpdate}
                                                     totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
@@ -209,7 +214,7 @@ export default function AgentsPage() {
                                             >
                                                 <AgentCard
                                                     agent={agent}
-                                                    onUpdate={refetch}
+                                                    onUpdate={handleUpdate}
                                                     totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>
@@ -242,7 +247,7 @@ export default function AgentsPage() {
                                             >
                                                 <AgentCard
                                                     agent={agent}
-                                                    onUpdate={refetch}
+                                                    onUpdate={handleUpdate}
                                                     totalSent={stats?.[agent.id.toString()] || 0n}
                                                 />
                                             </motion.div>

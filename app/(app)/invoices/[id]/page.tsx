@@ -2,9 +2,9 @@
 
 import { useInvoice } from "@/hooks/useInvoices";
 import { usePayInvoice } from "@/hooks/usePayInvoice";
-import { useWallet } from "@solana/wallet-adapter-react";
-const useAccount = () => { const { publicKey, connected } = useWallet(); return { address: publicKey?.toString(), isConnected: connected }; };
-const useChainId = () => 5003;
+import { useAccount } from "@/hooks/useAccount";
+import { useNetwork } from "@/components/NetworkProvider";
+import { getExplorerUrl } from "@/lib/network";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ export default function InvoiceDetailPage() {
     const invoiceId = params.id ? BigInt(params.id as string) : undefined;
 
     const { isConnected, address } = useAccount();
+    const { network } = useNetwork();
     const { invoice, isLoading, refetch } = useInvoice(invoiceId);
     const { payInvoice, isPending: paying } = usePayInvoice();
     const [copied, setCopied] = useState<string | null>(null);
@@ -250,12 +251,10 @@ export default function InvoiceDetailPage() {
 
                     {/* Token */}
                     <div className="p-3 rounded-lg border flex items-center gap-3">
-                        <div className="size-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">M</span>
-                        </div>
+                        <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="SOL" className="size-8 rounded-full" />
                         <div>
-                            <p className="font-medium">MNT (Native Token)</p>
-                            <p className="text-xs text-muted-foreground">Mantle Network</p>
+                            <p className="font-medium">SOL (Native Token)</p>
+                            <p className="text-xs text-muted-foreground">Solana Network</p>
                         </div>
                     </div>
                 </CardContent>
@@ -319,10 +318,10 @@ export default function InvoiceDetailPage() {
                 <Button
                     variant="link"
                     className="text-xs text-muted-foreground"
-                    onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${invoice.creator}`, '_blank')}
+                    onClick={() => window.open(getExplorerUrl(`address/${invoice.creator}`, network), '_blank')}
                 >
                     <ExternalLink className="size-3 mr-1" />
-                    View on Mantle Explorer
+                    View on Solana Explorer
                 </Button>
             </div>
         </div>

@@ -161,13 +161,17 @@ export default function NewInvoicePage() {
                         </Label>
                         <Input
                             id="recipient"
-                            placeholder="0x..."
+                            placeholder="Solana address (e.g. 7xKXt...)"
                             value={recipient}
-                            onChange={e => setRecipient(e.target.value)}
-                            className={recipient && (!recipient.startsWith('0x') || recipient.length !== 42) ? 'border-red-500' : ''}
+                            onChange={e => setRecipient(e.target.value.trim())}
+                            className={recipient && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? 'border-red-500 focus-visible:ring-red-500' : recipient && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? 'border-green-500 focus-visible:ring-green-500' : ''}
                         />
-                        {recipient && (!recipient.startsWith('0x') || recipient.length !== 42) && (
-                            <p className="text-xs text-red-500">Please enter a valid address</p>
+                        {recipient && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? (
+                            <p className="text-xs text-red-500">Please enter a valid Solana address (base58, 32–44 characters)</p>
+                        ) : recipient && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) ? (
+                            <p className="text-xs text-green-500">✓ Valid Solana address</p>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">Enter the recipient's Solana wallet address</p>
                         )}
                     </div>
 
@@ -247,7 +251,7 @@ export default function NewInvoicePage() {
                     </Button>
                     <Button
                         onClick={handleSubmit}
-                        disabled={isPending || !recipient || !amount || !date}
+                        disabled={isPending || !recipient || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient) || !amount || !date}
                     >
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isPending ? "Creating..." : "Create Invoice"}
@@ -262,7 +266,7 @@ export default function NewInvoicePage() {
                 onCancel={handleCancel}
                 state={txState}
                 title="Creating Invoice"
-                description="Creating your invoice on Mantle..."
+                description="Creating your invoice on Solana..."
                 txHash={hash}
                 error={txError}
                 successMessage="Your invoice has been created on-chain!"

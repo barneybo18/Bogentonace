@@ -115,18 +115,31 @@ export function AgentCard({ agent, onUpdate, totalSent = 0n }: AgentCardProps) {
         if (!topUpAmount) return;
         try {
             if (isNative) {
-                await topUpAgent(agent.id, parseSol(topUpAmount), 0n);
+                const amount = parseSol(topUpAmount);
+                const newBalance = displayBalance + amount;
+                const result = await topUpAgent(agent.id, agent.to || "", amount, newBalance, 0n);
+                if (result.success) {
+                    toast.success("Deposit successful", { description: "Funds have been added on-chain." });
+                } else {
+                    toast.error("Deposit failed", { description: result.error });
+                }
             } else {
-                await topUpAgent(agent.id, 0n, parseTokenAmount(topUpAmount, decimals));
+                const amount = parseTokenAmount(topUpAmount, decimals);
+                const newTokenBalance = displayBalance + amount;
+                const result = await topUpAgent(agent.id, agent.to || "", 0n, 0n, newTokenBalance);
+                if (result.success) {
+                    toast.success("Deposit successful", { description: "Funds have been added on-chain." });
+                } else {
+                    toast.error("Deposit failed", { description: result.error });
+                }
             }
 
             setIsTopUpOpen(false);
             setTopUpAmount("");
-            toast.success("Top up successful!");
             onUpdate();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            toast.error("Top up failed");
+            toast.error("Top up failed", { description: e.message || "An unexpected error occurred." });
         }
     };
 

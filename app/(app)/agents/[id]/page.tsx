@@ -22,7 +22,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const useTokenApproval = (...args: any[]) => ({ allowance: 1000000n, approveToken: async (...args: any[]) => {}, isPending: false });
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getExplorerUrl } from "@/lib/solana";
+import { getExplorerUrl } from "@/lib/network";
+import { useNetwork } from "@/components/NetworkProvider";
 import { toast } from "sonner";
 
 // Helper to format duration
@@ -36,7 +37,8 @@ const formatDuration = (seconds: number) => {
 export default function AgentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: idParam } = use(params);
     const id = BigInt(idParam);
-    const { agent, isLoading: agentLoading } = useAgent(id);
+    const { network } = useNetwork();
+    const { agent, isLoading: agentLoading, refetch: refetchAgent } = useAgent(id);
     const { history, isLoading: historyLoading } = useAgentHistory(id);
     const { topUpAgent, isPending: isTopUpPending } = useTopUpAgent();
     const { deleteAgent, isPending: isDeletePending, isSuccess: isDeleteSuccess, error: deleteError, resetState: resetDeleteState } = useDeleteAgent();
@@ -86,16 +88,34 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
     const itemsPerPage = 10;
 
     const handleTopUp = async () => {
+        if (!agent) return;
         try {
             if (isNative) {
-                await topUpAgent(id, parseSol(topUpAmount), 0n);
+                const amount = parseSol(topUpAmount);
+                const newBalance = displayBalance + amount;
+                const result = await topUpAgent(id, agent.to || "", amount, newBalance, 0n);
+                if (result.success) {
+                    toast.success("Deposit successful", { description: "Funds have been added on-chain." });
+                    refetchAgent();
+                } else {
+                    toast.error("Deposit failed", { description: result.error });
+                }
             } else {
-                await topUpAgent(id, 0n, parseTokenAmount(topUpAmount, decimals));
+                const amount = parseTokenAmount(topUpAmount, decimals);
+                const newTokenBalance = displayBalance + amount;
+                const result = await topUpAgent(id, agent.to || "", 0n, 0n, newTokenBalance);
+                if (result.success) {
+                    toast.success("Deposit successful", { description: "Funds have been added on-chain." });
+                    refetchAgent();
+                } else {
+                    toast.error("Deposit failed", { description: result.error });
+                }
             }
             setTopUpOpen(false);
             setTopUpAmount("");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            toast.error("Deposit failed", { description: e.message || "An unexpected error occurred." });
         }
     };
 
@@ -108,7 +128,11 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
     const handleToggleStatus = async () => {
         if (!agent) return;
         try {
-            await toggleAgentStatus(id, !agent.isActive);
+            const success = await toggleAgentStatus(id, !agent.isActive);
+            if (success) {
+                refetchAgent();
+                toast.success(agent.isActive ? "Agent paused" : "Agent resumed");
+            }
         } catch (e) {
             console.error(e);
         }
@@ -175,10 +199,10 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                         onClick={async () => {
                             toast.info("Deleting agent...", { description: "Please confirm in your wallet" });
                             setIsDeleting(true);
-                            const success = await deleteAgent(id);
-                            if (!success) {
+                            const result = await deleteAgent(id);
+                            if (!result.success) {
                                 setIsDeleting(false);
-                                toast.error("Failed to delete agent", { description: "Transaction was rejected" });
+                                toast.error("Failed to delete agent", { description: result.error || "Transaction was rejected" });
                             }
                         }}
                         disabled={isDeletePending || isDeleting}
@@ -321,7 +345,7 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                                                 <div className="text-right">
                                                     <p className="font-bold">-{formatTokenAmount(item.amount, decimals)} {symbol}</p>
                                                     <a
-                                                        href={getExplorerUrl(item.transactionHash)}
+                                                        href={getExplorerUrl("tx/" + item.transactionHash, network)}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="text-xs text-primary hover:underline font-mono"
@@ -389,7 +413,7 @@ export default function AgentDetailsPage({ params }: { params: Promise<{ id: str
                                     <div className="text-right">
                                         <p className="font-bold">-{formatTokenAmount(item.amount, decimals)} {symbol}</p>
                                         <a
-                                            href={getExplorerUrl(item.transactionHash)}
+                                            href={getExplorerUrl("tx/" + item.transactionHash, network)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="text-xs text-primary hover:underline font-mono"

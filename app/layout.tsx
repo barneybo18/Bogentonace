@@ -14,13 +14,13 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   // Basic Meta
   title: {
-    default: "BOGENT - Autonomous AI Payment Agents on Mantle",
+    default: "BOGENT - Autonomous AI Payment Agents on Solana",
     template: "%s | BOGENT",
   },
   description:
-    "Deploy self-funded AI agents that automatically execute recurring crypto payments on Mantle Network. Trustless payroll, subscriptions, and rent payments with ultra-low fees.",
+    "Deploy self-funded AI agents that automatically execute recurring crypto payments on Solana Network. Trustless payroll, subscriptions, and rent payments with ultra-low fees.",
   keywords: [
-    "Mantle Network",
+    "Solana",
     "crypto payments",
     "automated payments",
     "recurring payments",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "blockchain",
     "payroll",
     "subscriptions",
-    "MNT",
+    "SOL",
     "USDT",
     "USDC",
     "smart contracts",
@@ -52,9 +52,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://bogent.vercel.app",
     siteName: "BOGENT",
-    title: "BOGENT - Autonomous AI Payment Agents on Mantle",
+    title: "BOGENT - Autonomous AI Payment Agents on Solana",
     description:
-      "Deploy self-funded AI agents that automatically execute recurring crypto payments. Trustless automation for payroll, subscriptions, and rent on Mantle Network.",
+      "Deploy self-funded AI agents that automatically execute recurring crypto payments. Trustless automation for payroll, subscriptions, and rent on Solana Network.",
     images: [
       {
         url: "/icon.png",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "BOGENT - Autonomous AI Payment Agents",
     description:
-      "Self-funded AI agents for recurring crypto payments on Mantle. Ultra-low fees, fully trustless.",
+      "Self-funded AI agents for recurring crypto payments on Solana. Ultra-low fees, fully trustless.",
     images: ["/icon.png"],
     creator: "@oboh_banny18",
   },
@@ -139,7 +139,7 @@ export default function RootLayout({
               "@type": "WebApplication",
               name: "BOGENT",
               description:
-                "Autonomous AI payment agents for recurring crypto payments on Mantle Network",
+                "Autonomous AI payment agents for recurring crypto payments on Solana Network",
               url: "https://bogent.vercel.app",
               applicationCategory: "FinanceApplication",
               operatingSystem: "Web",
